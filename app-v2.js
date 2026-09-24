@@ -23,7 +23,7 @@
   let session={role:null,user:null,token:sessionStorage.getItem("container-session-token")||"",view:null,filters:{warehouse:"all",customer:"all",query:"",statuses:["draft","reschedule_pending"]},statusMenuOpen:false,selectedDate:plusDays(0),superSelected:null};
   let suppressCloudSave=false,syncTimer=null,cloudPollTimer=null,lastCloudUpdate="";
   function sharedState(){const {accounts,...state}=data;return state}
-  const API_ORIGIN=location.hostname.endsWith(".gitee.io")?"https://container-booking-d6doib212e061e-1494951598.ap-shanghai.app.tcloudbase.com":"";
+  const API_ORIGIN=location.hostname.endsWith(".app.tcloudbase.com")||location.hostname.endsWith(".tcloudbaseapp.com")?"":"https://container-booking-d6doib212e061e-1494951598.ap-shanghai.app.tcloudbase.com";
   async function api(path,options={}){const response=await fetch(`${API_ORIGIN}${path}`,{headers:{"Content-Type":"application/json",...(session.token?{Authorization:`Bearer ${session.token}`}:{}) ,...(options.headers||{})},...options});let payload={};try{payload=await response.json()}catch{}if(!response.ok)throw new Error(payload.error||"云端服务暂时不可用");return payload}
   async function pushState(){if(!session.user)return;const payload=await api("/api/state",{method:"PUT",body:JSON.stringify({state:sharedState()})});lastCloudUpdate=payload.updatedAt||lastCloudUpdate;return payload}
   const save=()=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(session.user&&!suppressCloudSave){clearTimeout(syncTimer);syncTimer=setTimeout(()=>{syncTimer=null;pushState().catch(error=>toast(`云端同步失败：${error.message}`))},250)}};
