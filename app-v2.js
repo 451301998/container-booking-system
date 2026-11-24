@@ -1,6 +1,6 @@
 (() => {
   const STORAGE_KEY="container-booking-production-v1";
-  const APP_RELEASE="20261124-urlfix-1",VERSION_CHECK_INTERVAL=120000;
+  const APP_RELEASE="20261124-auditlog-1",VERSION_CHECK_INTERVAL=120000;
   function cleanDocumentUrl({home=false}={}){const url=new URL(location.href);url.search="";if(home){url.hash="";if(url.pathname.endsWith("/index.html"))url.pathname=url.pathname.slice(0,-"index.html".length)}return url.toString()}
   function clearDocumentQuery(){if(!location.search)return;const url=new URL(location.href);url.search="";history.replaceState(history.state,"",`${url.pathname}${url.hash}`)}
   clearDocumentQuery();
