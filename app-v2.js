@@ -1,6 +1,9 @@
 (() => {
   const STORAGE_KEY="container-booking-production-v1";
-  const APP_RELEASE="20261124-auditlog-1",VERSION_CHECK_INTERVAL=120000;
+  const APP_RELEASE="20261124-urlfix-1",VERSION_CHECK_INTERVAL=120000;
+  function cleanDocumentUrl({home=false}={}){const url=new URL(location.href);url.search="";if(home){url.hash="";if(url.pathname.endsWith("/index.html"))url.pathname=url.pathname.slice(0,-"index.html".length)}return url.toString()}
+  function clearDocumentQuery(){if(!location.search)return;const url=new URL(location.href);url.search="";history.replaceState(history.state,"",`${url.pathname}${url.hash}`)}
+  clearDocumentQuery();
   const roles={service:{label:"客服",defaultView:"dashboard"},ops:{label:"运营",defaultView:"ops-dashboard"},warehouse:{label:"仓库",defaultView:"warehouse-calendar"},it:{label:"后台 IT",defaultView:"it-dashboard"}};
   const navItems={
     service:[["dashboard","▦","预约总览"],["containers","▤","货柜清单"],["booking","＋","发起预约"],["customers","◎","客户管理"],["warehouses","⌂","仓库管理"],["warehouse-calendar","□","仓库日历"],["audit-logs","☷","系统预约日志"]],
@@ -53,7 +56,7 @@
   function stopCloudPolling(){clearInterval(cloudPollTimer);cloudPollTimer=null}
   function startCloudPolling(){stopCloudPolling();if(!session.user||document.hidden)return;cloudPollTimer=setInterval(pollCloudState,CLOUD_POLL_INTERVAL)}
   function handleVisibilityChange(){if(document.hidden){stopCloudPolling();return}checkAppVersion();if(session.user){pollCloudState();startCloudPolling()}}
-  function reloadForVersion(version){const url=new URL(location.href);url.searchParams.set("app-version",version||Date.now().toString());location.replace(url.toString())}
+  function reloadForVersion(){location.replace(cleanDocumentUrl({home:true}))}
   function showUpdatePrompt(version){if(updatePromptVisible)return;updatePromptVisible=true;let seconds=30;const layer=document.createElement("div");layer.id="app-update-layer";layer.className="app-update-layer";layer.innerHTML=`<section class="app-update-card" role="alertdialog" aria-modal="true" aria-labelledby="app-update-title"><div class="app-update-icon">↻</div><h2 id="app-update-title">系统已发布新版本</h2><p>为避免继续使用旧页面，系统将在 <strong id="app-update-countdown">${seconds}</strong> 秒后自动刷新。请先确认当前填写内容已经保存。</p><button id="app-update-refresh" class="btn primary" type="button">立即刷新</button></section>`;document.body.appendChild(layer);const refresh=()=>reloadForVersion(version);layer.querySelector("#app-update-refresh")?.addEventListener("click",refresh);updateCountdownTimer=setInterval(()=>{seconds-=1;const countdown=layer.querySelector("#app-update-countdown");if(countdown)countdown.textContent=String(Math.max(seconds,0));if(seconds<=0){clearInterval(updateCountdownTimer);updateCountdownTimer=null;refresh()}},1000)}
   async function checkAppVersion(){if(document.hidden||updatePromptVisible)return;try{const response=await fetch(`version.json?t=${Date.now()}`,{cache:"no-store"});if(!response.ok)return;const manifest=await response.json();const latest=String(manifest.version||"").trim();if(latest&&latest!==APP_RELEASE)showUpdatePrompt(latest)}catch{}}
   function startVersionChecks(){clearInterval(versionCheckTimer);checkAppVersion();versionCheckTimer=setInterval(checkAppVersion,VERSION_CHECK_INTERVAL)}
